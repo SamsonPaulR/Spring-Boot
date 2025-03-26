@@ -1,0 +1,301 @@
+@GetMapping("hello/{name}/{quantity}")
+	public String sayhello1(@PathVariable("name") String name1,@PathVariable("quantity") int q)
+	{
+		return ("hello"+name1+"you got"+q +"points");
+		
+	}
+
+--------------------------------------------------------------
+
+login--
+
+package com.example.demo.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/home")
+public class Login {
+	
+	@GetMapping("/login")
+	public String sayhello() {
+		return "welcome to login page";
+	}
+	@GetMapping("hello/{name}/{quantity}")
+	public String sayhello1(@PathVariable("name") String name1,@PathVariable("quantity") int q)
+	{
+		return ("hello"+name1+"you got"+q +"points");
+		
+	}
+
+}
+
+
+--------------------------------------------------------
+Homecontroller
+package com.example.demo.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class HomeController {
+	@GetMapping("/hello")
+	public String sayHello()
+	
+	{
+		return "welcome to Restful web services Nithish!";
+	}
+	
+
+}
+-------------------------------------------------------------------------------------
+
+
+ @GetMapping("/product")
+	    public String getProductDetails(@RequestParam String name, 
+	                                    @RequestParam(required = false, defaultValue = "1") int quantity) {
+	        return "Product: " + name + ", Quantity: " + quantity;
+	    }
+//http://localhost:9093/home/product?name=Laptop&quantity=5
+
+
+--------------------------------------------------------------
+
+
+ @Service
+public class ProductService {
+    
+    private static List<Product> data = new ArrayList();
+     
+    static {
+        data.add(new Product(1, "iPhone X", 999.99f));
+        data.add(new Product(2, "XBOX 360", 329.50f));     
+    }
+     
+    public ProductService() {
+         
+    }
+     
+  
+     
+    public List<Product> listAllProducts() {
+        
+    	return data;
+    }
+ 
+----------------------------------------------------------------------------------
+
+                  Product using restfull
+-----------------------------------------------------------------------------------
+Controller
+-------------
+
+package com.example.demo.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.demo.model.Product;
+import com.example.demo.service.ProductService;
+
+@RestController
+public class ProductController {
+
+	
+	@Autowired
+	ProductService service;
+	
+	@GetMapping("/listall")
+	public List<Product> list(){
+		return service.listAllProducts();
+	}
+	
+	
+	@PostMapping("/addList")
+	public String addproducttoList(@RequestBody Product pro) {
+		return service.addproduct(pro);
+	}
+	
+	@DeleteMapping("/deleteproduct/{id}")
+    public String deleteProduct(@PathVariable int id) {
+        return service.deleteProduct(id);
+    }
+	
+	 @PutMapping("/updateproduct/{id}/{name}")
+	    public Product updateProduct(@PathVariable int id, @PathVariable String name) {
+	        return service.updateProduct(id, name);
+	    }
+
+@GetMapping("/{id}")
+   public ResponseEntity<?> getProductById(@PathVariable Integer id) {
+       try {
+           Product product = service.getProductById(id);
+           return ResponseEntity.ok(product);
+       } 
+       catch (InvalidProductIDException ex) {
+           Map<String, String> errorResponse = new HashMap<>();
+           errorResponse.put("error", "Product Not Found");
+           errorResponse.put("message", ex.getMessage());
+           return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+       }
+   }
+	
+}
+
+
+-------------------------------------------------------------------------------------
+Service
+-------------
+
+package com.example.demo.service;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
+import com.example.demo.model.Product;
+
+
+@Service
+public class ProductService {
+	
+	private static List<Product> data = new ArrayList<>();
+	
+	static {
+		data.add(new Product(1,"Samsung",999999.0f));
+		data.add(new Product(1,"Iphone",999.0f));
+	}
+	   
+  
+     
+    public List<Product> listAllProducts() {
+        
+    	return data;
+    }
+    
+    public String addproduct(Product pro) {
+    	data.add(pro);
+    	return "Product Added Sccessully";
+    }
+    
+    public String deleteProduct(int id) {
+        Iterator<Product> iterator = data.iterator();
+        while (iterator.hasNext()) {
+            Product p = iterator.next();
+            if (p.getId() == id) {
+                iterator.remove();
+                return "Product Deleted Successfully";
+            }
+        }
+        return "Product Not Found";
+    }
+    
+    public Product updateProduct(int id, String name) {
+    	Product p1 = null;
+        for (Product p : data) {
+            if (p.getId() == id) {
+                p.setName(name);
+                p1 =p;
+            }
+        }
+        return p1;
+    }
+	public Product getProductById(Integer id)throws InvalidProductIDException{
+	    for (Product product : data) {
+	        if (product.getId()==(id)) { // Using equals() for Integer comparison
+	            return product;
+	        }
+	    }
+	    throw new InvalidProductIDException("Product with ID " + id + " not found");
+	}
+    
+   
+}
+
+
+------------------------------------------------------------------------------------
+model
+-----
+
+package com.example.demo.model;
+
+public class Product {
+	
+	private int id;
+	private String name;
+	private float price;
+	
+	
+	public Product(int id, String name, float price) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.price = price;
+	}
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public float getPrice() {
+		return price;
+	}
+	public void setPrice(float price) {
+		this.price = price;
+	}
+	
+	
+
+}
+
+
+----------------------------------------------------------------------------------
+
+
+---------------------------------------------
+@GetMapping("/{id}")
+   public ResponseEntity<?> getProductById(@PathVariable Integer id) {
+       try {
+           Product product = service.getProductById(id);
+           return ResponseEntity.ok(product);
+       } 
+       catch (InvalidProductIDException ex) {
+           Map<String, String> errorResponse = new HashMap<>();
+           errorResponse.put("error", "Product Not Found");
+           errorResponse.put("message", ex.getMessage());
+           return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+       }
+   }
+---------------------------------------------
+public Product getProductById(Integer id)throws InvalidProductIDException{
+	    for (Product product : data) {
+	        if (product.getId()==(id)) { // Using equals() for Integer comparison
+	            return product;
+	        }
+	    }
+	    throw new InvalidProductIDException("Product with ID " + id + " not found");
+	}
+---------------------------------------------------------------------------------------------
